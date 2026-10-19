@@ -1,13 +1,10 @@
 # ThermoPro thermometer card
 
-This card shows ThermoPro data in a Home Assistant dashboard.
-It supports Core ThermoPro entities, our TP25 integrations, and the reviewed TP90x and ThermoPro Meat custom providers.
-Version: `0.2.2`.
+Temperature readings, history, and device controls for Home Assistant dashboards.
+Supports the `thermopro`, `tp90x_multi`, and `thermopro_meat` integrations.
+Controls appear only when the selected integration provides them.
 
-The card handles registry entries left after switching from HACS to the Core preview.
-It shows profile controls only when the running integration provides them.
-Core mode hides profile labels, empty profile rows, and the optional timer controls.
-Change the HA resource URL to `?version=22` when you install this update.
+Version: **0.2.2**. Use resource version **22** after updating.
 
 ![Card in light and dark Home Assistant themes](assets/preview.png)
 
@@ -26,9 +23,8 @@ Change the HA resource URL to `?version=22` when you install this update.
 - Show the Core clock synchronization button when exposed.
 - Keep form values and open sections during Home Assistant updates.
 
-The basic TP25 Core proposal supplies temperatures and battery data.
-Our full TP25 integration also supplies profile, alarm, unit, sound, and connection controls.
-This card does not require Node-RED.
+The TP25 custom integration supplies profile, alarm, unit, sound, and connection controls.
+The card also works with temperature and battery entities alone.
 
 ## Installation
 
@@ -86,11 +82,10 @@ A language change preserves open sections and current form drafts.
 Preset names, entity IDs, device names, and service values remain unchanged.
 Messages returned by other integrations retain their original text.
 The card language does not change the device unit or HA temperature settings.
-Project documentation remains in English.
 
 ## Choose the displayed temperature unit
 
-Use **Temperaturanzeige** in the visual card editor.
+Use **Temperature display** in the visual card editor.
 The available values are:
 
 | Configuration value | Behavior |
@@ -110,25 +105,24 @@ temperature_unit: device
 The choice changes readings, history, and the profile summary in the card.
 History points retain their original units before display conversion.
 The card does not change the device display or the HA sensor unit.
-This display option also works with the basic Core proposal.
-The Core proposal reports the device unit as a temperature sensor attribute.
-Our TP25 alarm fields and preset editor use their labeled Celsius values.
+The `device` option requires a reported device unit; otherwise it uses the HA entity unit.
+TP25 alarm fields and the preset editor use Celsius values.
 TP90x limit fields use each number entity's reported unit, including Fahrenheit.
 The card sends the entered value without a second conversion.
 
 ## Use profiles and alarms
 
-Our TP25 profile controls require its profile entities and integration actions.
+TP25 profile controls require the TP25 custom integration.
 TP90x uses its existing number and switch entities instead.
 An enabled alarm is a configuration state, not proof of an active alarm.
-The card does not invent active-alarm indicators for providers without alarm-state entities.
-Profile limits use Celsius, regardless of the displayed measurement unit.
+An active-alarm indicator requires an alarm-state entity.
+TP25 profile limits use Celsius, regardless of the displayed measurement unit.
 A preset name is active only when its limits match the confirmed device profile.
 
 ### Manage presets
 
 Open **Presets** to create, edit, or delete named templates.
-Choose **Anwenden** in the probe alarm section to apply a saved template.
+Choose **Apply preset** in the probe alarm section to apply a saved template.
 The custom integration stores templates in Home Assistant, independently of this card.
 They survive dashboard changes and Home Assistant restarts.
 No named templates are installed by default.
@@ -138,7 +132,7 @@ The integration actions also manage presets without this card.
 See the custom integration README for `thermopro.save_alarm_preset` and `thermopro.delete_alarm_preset`.
 Saving or deleting a template does not change an active device profile.
 Apply the template again after editing its limits.
-The basic Core proposal has no preset management.
+Preset management requires the TP25 custom integration.
 
 ### Acknowledge alarms
 
@@ -151,20 +145,16 @@ A separate optional Home Assistant timer is not a TP25 firmware timer.
 
 ## Compatibility
 
-The following models should be compatible when their integration exposes the reviewed entity shapes.
-This table describes card compatibility, not additional Bluetooth device support.
-The card does not connect to thermometers or decode their Bluetooth protocol.
+The card reads Home Assistant entities. The installed integration supplies Bluetooth device support.
 
-**Fixture tested** means synthetic HA registry, state, and service checks passed.
-**Device verified** means the card was checked with a real device.
-Only TP25 hardware was available.
-The Core TP25 device result comes from the earlier accepted preview.
-Other models need confirmation from their owners.
+**Automated tests** use simulated HA entities.
+**Device tested** means the card was used with a physical thermometer.
+Only TP25 has been tested with hardware; the other models need confirmation from their owners.
 
-| Model | HA integration | Should be compatible | Fixture tested | Device verified |
+| Model | HA integration | Should be compatible | Automated tests | Device tested |
 | --- | --- | --- | --- | --- |
-| TP25 | Our full custom integration | Yes, with TP25 controls | Yes | Yes |
-| TP25 | Our basic Core proposal | Yes, basic readings | Yes | Yes, earlier preview |
+| TP25 | TP25 custom integration | Yes, with TP25 controls | Yes | Yes |
+| TP25 | Proposed Core TP25 support (not released) | Yes, basic readings | Yes | Yes, test build |
 | TP357 | Core `thermopro` | Yes | Yes | No |
 | TP357S | Core `thermopro` | Yes | Yes | No |
 | TP358 | Core `thermopro` | Yes | Yes | No |
@@ -180,11 +170,10 @@ Other models need confirmation from their owners.
 | TP904 | Custom `tp90x_multi`, experimental device support upstream | Yes, with exposed controls | Yes | No |
 | TP902 | Custom `thermopro_meat` | Yes, basic readings | Yes | No |
 
-There is no universal promise for every model whose name starts with TP.
-The device must first work with one of the supported integrations.
+The device must work with one of the supported integrations before it can appear in the card.
 Unsupported controls and TP25-only presets remain hidden for other providers.
 Disabled entities are not included; enable them in HA and reload the card when needed.
-For example, the reviewed TP90x provider disables its battery entity by default.
+Enable the battery entity if your integration disables it by default.
 Passive Core sensors show data availability rather than claiming an active Bluetooth connection.
 
 ## Development
