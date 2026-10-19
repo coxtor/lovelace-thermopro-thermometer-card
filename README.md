@@ -6,7 +6,13 @@ Controls appear only when the selected integration provides them.
 
 Version: **0.2.2**. Use resource version **22** after updating.
 
-![Card in light and dark Home Assistant themes](assets/preview.png)
+## Screenshots
+
+| Temperatures | History and device settings | TP25 alarms and presets |
+| --- | --- | --- |
+| <img src="assets/temperatures.png" alt="Connected probes with temperatures and inline history" width="260"> | <img src="assets/history-and-settings.png" alt="Temperature history and device unit, sound, and connection controls" width="260"> | <img src="assets/alarms-and-presets.png" alt="Per-probe alarm limits and saved preset management" width="260"> |
+
+Screenshots show the German interface with the TP25 custom integration.
 
 ## Functions
 
@@ -162,7 +168,8 @@ The card reads Home Assistant entities. The installed integration supplies Bluet
 
 **Automated tests** use simulated HA entities.
 **Device tested** means the card was used with a physical thermometer.
-Only TP25 has been tested with hardware; the other models need confirmation from their owners.
+Only TP25 has been tested with hardware.
+If you use another model, please open an issue with the model name, integration, and which readings or controls work.
 
 | Model | HA integration | Should be compatible | Automated tests | Device tested |
 | --- | --- | --- | --- | --- |
@@ -188,12 +195,3 @@ Unsupported controls and TP25-only presets remain hidden for other providers.
 Disabled entities are not included; enable them in HA and reload the card when needed.
 Enable the battery entity if your integration disables it by default.
 Passive Core sensors show data availability rather than claiming an active Bluetooth connection.
-
-## Development
-
-Run `npm test` for unit tests.
-Open the HTML fixtures in `tests/` for browser layout, language, and interaction checks.
-These fixtures use synthetic HA states.
-
-See [CHANGELOG.md](CHANGELOG.md) for changes.
-Entity roles use stable unique IDs, so translated and renamed entities keep their controls.
