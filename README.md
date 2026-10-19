@@ -59,6 +59,7 @@ device_name: ThermoPro TP25
 
 Use `device_id` only when device names are not unique.
 The value must be the Home Assistant device-registry ID.
+Open the device under **Settings → Devices & services → Devices** and copy the ID after `/config/devices/device/` in the browser URL.
 Supported registry platforms are `thermopro`, `tp90x_multi`, and `thermopro_meat`.
 It is not the Bluetooth address.
 
