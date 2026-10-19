@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>ThermoPro display units</title>
+<thermopro-thermometer-card id="card"></thermopro-thermometer-card>
+<pre id="result">RUNNING</pre>
+<script src="../thermopro-thermometer-card.js"></script>
+<script>
+(async()=>{
+  const checks=[];
+  const check=(ok,message)=>{if(!ok)throw Error(message);checks.push(message);};
+  const wait=()=>new Promise(resolve=>setTimeout(resolve,30));
+  try {
+    const id='sensor.tp25_probe_1_temperature', now=Date.now()/1000;
+    const rows=[{entity_id:id,original_name:'Probe 1 temperature',platform:'thermopro',device_id:'tp25'}];
+    const states={[id]:{state:'25',last_updated:new Date().toISOString(),attributes:{device_class:'temperature',unit_of_measurement:'°C',device_display_unit:'FAHRENHEIT'}}};
+    const history={[id]:[{s:'0',lu:now-3600,a:{unit_of_measurement:'°C'}},{s:'212',lu:now-10,a:{unit_of_measurement:'°F'}}]};
+    const hass={language:"de",states,services:{},callWS:async request=>request.type==='config/entity_registry/list'?rows:request.type==='config/device_registry/list'?[{id:'tp25',name:'ThermoPro TP25',model:'TP25'}]:history};
+    const card=document.querySelector('#card');
+    card.setConfig({temperature_unit:'device'});card.hass=hass;await wait();
+    const reading=()=>card.shadowRoot.querySelector('.probe-reading').textContent;
+    check(/77\.0\s*°F/.test(reading()),'Device mode displays converted Fahrenheit');
+    check(card.shadowRoot.textContent.includes('32.0–212.0 °F'),'History uses the same display unit');
+    check(!card.shadowRoot.querySelector('[data-entity]'),'Core device controls remain hidden');
+    states[id].attributes.device_display_unit='CELSIUS';card.hass={...hass};
+    check(/25\.0\s*°C/.test(reading()),'Physical unit update changes the card without reconfiguration');
+    check(card.shadowRoot.textContent.includes('0.0–100.0 °C'),'History converts from original cached units');
+    states[id].state='77';states[id].attributes.unit_of_measurement='°F';
+    card.setConfig({temperature_unit:'celsius'});card.hass={...hass};await wait();
+    check(/25\.0\s*°C/.test(reading()),'HA Fahrenheit values are not double converted');
+    const editor=document.createElement('thermopro-thermometer-card-editor');
+    editor.setConfig({type:'custom:thermopro-thermometer-card'});editor.hass=hass;document.body.append(editor);
+    const form=editor.querySelector('ha-form');
+    const field=form.schema.find(item=>item.name==='temperature_unit');
+    check(field.selector.select.options.length===4,'Visual editor offers all four display modes');
+    check(form.data.temperature_unit==='ha','Visual editor defaults to the HA unit');
+    let received;
+    editor.addEventListener('config-changed',event=>received=event.detail.config);
+    form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{type:'custom:thermopro-thermometer-card',temperature_unit:'device'}}}));
+    check(received?.temperature_unit==='device','Visual editor persists the selected mode');
+    document.querySelector('#result').textContent='PASS: '+checks.join('\nPASS: ');
+  }catch(error){document.querySelector('#result').textContent='FAIL: '+error.stack;}
+})();
+</script></html>

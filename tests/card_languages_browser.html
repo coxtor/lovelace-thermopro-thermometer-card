@@ -1,0 +1,35 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>ThermoPro language checks</title>
+<thermopro-thermometer-card id="card"></thermopro-thermometer-card><pre id="result">RUNNING</pre>
+<script src="../thermopro-thermometer-card.js"></script><script>
+(async()=>{const checks=[],check=(v,m)=>{if(!v)throw Error(m);checks.push(m)},wait=()=>new Promise(r=>setTimeout(r,30));try{
+const rows=[],states={},calls=[];function add(domain,key,state,attributes={}){const entity_id=domain+'.'+key;rows.push({entity_id,unique_id:'example_'+key,original_name:key.replaceAll('_',' '),platform:'thermopro',device_id:'example'});states[entity_id]={state,attributes};}
+add('sensor','probe_1_temperature','25',{device_class:'temperature',unit_of_measurement:'°C'});add('sensor','probe_1_alarm_profile','target',{high_celsius:55,saved_presets:[{name:'Mein Lachs',mode:'target',high:55}]});add('binary_sensor','probe_1_connected','on');add('binary_sensor','connection','on');add('binary_sensor','alarm','on');add('button','acknowledge_alarm','unknown');add('select','display_unit','Celsius');add('switch','device_alarm','on');
+const hass={language:'en-US',states,services:{thermopro:{set_alarm_profile:{}}},callWS:async m=>m.type==='config/entity_registry/list'?rows:m.type==='config/device_registry/list'?[{id:'example',name:'ThermoPro TP25',model:'TP25'}]:{},callService:async(...args)=>calls.push(args)};
+const card=document.querySelector('#card');card.setConfig({});card.hass=hass;await wait();const root=card.shadowRoot;
+check(root.querySelector('[data-section=settings] summary').textContent.includes('Device settings'),'HA English translates section headings');
+check(root.querySelector('[data-press]').textContent==='Acknowledge alarm','ACK label is English');
+check(root.querySelector('[data-entity]').getAttribute('aria-label')==='Temperature unit','Select accessibility label is translated');
+check(root.querySelector('[data-preset-name]').placeholder==='e.g. Salmon','Preset placeholder is translated');
+check(root.querySelector('[data-mode="1"]').options[1].textContent==='Target','Alarm mode label is English');
+check(root.querySelector('[data-mode="1"]').options[1].value==='target','Translated mode keeps the integration value');
+check(root.querySelector('.profile-name').textContent==='Mein Lachs','User preset names are preserved');
+root.querySelector('[data-section=alarms]').open=true;root.querySelector('[data-high="1"]').value='67.5';root.querySelector('[data-high="1"]').dispatchEvent(new Event("input",{bubbles:true}));
+card.hass={...hass,language:'de-DE'};await wait();
+check(root.querySelector('[data-section=settings] summary').textContent.includes('Geräteeinstellungen'),'HA language change updates card without reconfiguration');
+check(root.querySelector('[data-section=alarms]').open&&root.querySelector('[data-high="1"]').value==='67.5','Language change preserves open sections and input drafts');
+check(root.querySelector('[data-entity]').getAttribute('aria-label')==='Temperatureinheit','German accessibility label is present');
+check(root.querySelector('[data-preset-name]').placeholder==='z. B. Lachs','German preset placeholder is present');
+root.querySelector('[data-save-profile="1"]').click();await wait();check(calls.length===1&&calls[0][2].mode==='target'&&calls[0][2].high===67.5,'German control sends stable untranslated service data');
+card._config.language='en';card.hass={...hass,language:'de'};await wait();
+root.querySelector('[data-high="1"]').value='';root.querySelector('[data-save-profile="1"]').click();
+check(root.querySelector('[role=alert]').textContent==='Probe 1 needs an upper target value.','Validation errors use explicit English override');
+card._config.language='de';card.render();check(root.querySelector('[role=alert]').textContent==='Für Fühler 1 fehlt der obere Zielwert.','Existing validation error updates to German');
+const editor=document.createElement('thermopro-thermometer-card-editor');editor.setConfig({language:'auto'});editor.hass=hass;document.body.append(editor);let form=editor.querySelector('ha-form');
+check(form.computeLabel({name:'language'})==='Language'&&form.computeLabel({name:'device_id'})==='ThermoPro device','Editor field labels follow English HA language');
+check(form.schema.find(f=>f.name==='language').selector.select.options.length===3,'Editor offers automatic German and English');
+form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{language:'de'}}}));form=editor.querySelector('ha-form');check(form.computeLabel({name:'language'})==='Sprache','Editor immediately translates explicit language change');
+card.setConfig({language:'auto'});card.hass={...hass,language:'fr'};await wait();check(root.querySelector('[data-section=settings] summary').textContent.includes('Device settings'),'Unsupported HA language falls back to English');
+card.setConfig({language:'de'});card.hass={...hass,language:'en'};await wait();check(root.querySelector('[data-section=settings] summary').textContent.includes('Geräteeinstellungen'),'Explicit German overrides English HA language');
+document.querySelector('#result').textContent='PASS: '+checks.join('\nPASS: ');
+}catch(e){document.querySelector('#result').textContent='FAIL: '+e.stack}})();
+</script></html>

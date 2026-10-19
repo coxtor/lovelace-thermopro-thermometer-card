@@ -1,0 +1,34 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ThermoPro provider checks</title>
+<style>body{font-family:Arial;width:410px;margin:10px;--primary-text-color:#222;--secondary-text-color:#666;--primary-color:#039be5;--divider-color:#ddd;--card-background-color:#fff;--secondary-background-color:#eee}ha-card{display:block}pre{white-space:pre-wrap}</style>
+<thermopro-thermometer-card id="card"></thermopro-thermometer-card><pre id="result">RUNNING</pre>
+<script src="../thermopro-thermometer-card.js"></script><script>
+(async()=>{const checks=[];const check=(v,m)=>{if(!v)throw Error(m);checks.push(m)};const wait=()=>new Promise(r=>setTimeout(r,30));try{
+const card=document.querySelector('#card'), rows=[],states={},calls=[];
+function add(domain,key,value,attributes={}){const entity_id=`${domain}.${key}`;rows.push({entity_id,unique_id:`example_${key}`,original_name:key.replaceAll('_',' '),platform:'tp90x_multi',device_id:'example'});states[entity_id]={state:String(value),attributes};}
+add('sensor','probe_1',55,{device_class:'temperature',unit_of_measurement:'°C'});add('sensor','battery',91,{device_class:'battery',unit_of_measurement:'%'});
+add('select','units','Fahrenheit',{options:['Celsius','Fahrenheit']});add('switch','alarm_sound','on');add('switch','probe_1_alarm','on');add('number','probe_1_min',100,{device_class:'temperature',unit_of_measurement:'°F',min:0,max:1000,step:0.1});add('number','probe_1_max',180,{device_class:'temperature',unit_of_measurement:'°F',min:0,max:1000,step:0.1});add('button','alarm_snooze','unknown');add('button','backlight','unknown');
+const hass={language:"de",states,services:{},callWS:async m=>m.type==='config/entity_registry/list'?rows:m.type==='config/device_registry/list'?[{id:'example',name:'TP920',model:'TP920'}]:{},callService:async(domain,service,data)=>{calls.push({domain,service,data});}};
+card.setConfig({temperature_unit:'device'});card.hass=hass;await wait();let root=card.shadowRoot;
+check(root.querySelector('.probe-reading').textContent.includes('131.0'),'TP90x follows exposed device unit without double conversion');
+check(!root.querySelector('.badge.alarm'),'Enabled alarm does not indicate active alarm');
+root.querySelector('[data-section=alarms]').open=true;root.querySelector('[data-section=settings]').open=true;
+let input=root.querySelector('[data-number="number.probe_1_min"]');check(input.value==='100','Fahrenheit threshold is shown in entity units');
+input.value='105.5';input.dispatchEvent(new Event('change',{bubbles:true}));await wait();check(calls.length===1&&calls[0].domain==='number'&&calls[0].service==='set_value'&&calls[0].data.value===105.5,'Number change sends exactly one unconverted Fahrenheit value');
+input=root.querySelector('[data-number="number.probe_1_min"]');input.value='';input.dispatchEvent(new Event('change',{bubbles:true}));await wait();check(calls.length===1,'Blank number does not write zero');
+input=root.querySelector('[data-number="number.probe_1_min"]');input.value='2000';input.dispatchEvent(new Event('change',{bubbles:true}));await wait();check(calls.length===1,'Out-of-range number does not send a command');
+root.querySelector('[data-toggle="switch.probe_1_alarm"]').click();await wait();check(calls.length===2&&calls[1].service==='turn_off','Alarm enable switch calls switch service');
+root.querySelector('[data-press="button.alarm_snooze"]').click();await wait();check(calls.length===3&&calls[2].domain==='button'&&calls[2].data.entity_id==='button.alarm_snooze','Snooze sends one button press');
+root.querySelector('[data-press="button.backlight"]').click();await wait();check(calls.length===4&&calls[3].data.entity_id==='button.backlight','Backlight uses exposed button');
+const select=root.querySelector('[data-entity="select.units"]');select.value='Celsius';select.dispatchEvent(new Event('change',{bubbles:true}));await wait();check(calls.length===5&&calls[4].service==='select_option'&&calls[4].data.option==='Celsius','Unit select uses native select action');
+check(!root.querySelector('[data-save-profile]')&&!root.querySelector('[data-save-preset]'),'Foreign providers do not inherit TP25 actions');
+rows.length=0;for(const key of Object.keys(states))delete states[key];
+function spike(key,value,device_class='temperature'){const entity_id='sensor.'+key;rows.push({entity_id,unique_id:'example_'+key,original_name:key.replaceAll('_',' '),platform:'thermopro',device_id:'spike'});states[entity_id]={state:String(value),attributes:{device_class,unit_of_measurement:device_class==='battery'?'%':'°C'}};}
+for(const [key,value,dc] of [['internal_temperature_probe_1',55],['internal_center_temperature_probe_1',54],['internal_end_temperature_probe_1',53],['ambient_temperature_probe_1',125],['battery_probe_1',88,'battery'],['internal_temperature_probe_2',60],['ambient_temperature_probe_2',130],['battery_probe_2',72,'battery']])spike(key,value,dc);
+hass.callWS=async m=>m.type==='config/entity_registry/list'?rows:m.type==='config/device_registry/list'?[{id:'spike',model:'TP972S',name:'TempSpike'}]:{};
+card.setConfig({});card.hass=hass;await wait();root=card.shadowRoot;
+const boxes=[...root.querySelectorAll('article.probe')];check(boxes.length===2,'TempSpike has one box per physical probe');check(Math.abs(boxes[0].getBoundingClientRect().height-boxes[1].getBoundingClientRect().height)<1,'Multi-position probes have equal heights');check(Math.abs(boxes[0].querySelector('.chart').getBoundingClientRect().top-boxes[1].querySelector('.chart').getBoundingClientRect().top)<1,'History charts align across different channel counts');
+check(root.querySelectorAll('.history-probe').length===6,'Expanded history includes all six temperature channels');check(card.scrollWidth<=410,'Grouped card fits narrow layout');
+const form=document.createElement('thermopro-thermometer-card-editor');form.setConfig({});form.hass=hass;check(form.querySelector('ha-form').schema[0].selector.device.filter.length===3,'Visual editor accepts all three providers');
+document.querySelector('#result').textContent='PASS: '+checks.join('\nPASS: ');
+}catch(e){document.querySelector('#result').textContent='FAIL: '+e.stack}})();
+</script></html>
