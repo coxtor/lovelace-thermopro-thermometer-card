@@ -1,9 +1,0 @@
-{
-  "name": "lovelace-thermopro-thermometer-card",
-  "version": "0.2.2",
-  "private": true,
-  "scripts": {
-    "test": "node --test tests/test_card_registry.cjs"
-  },
-  "license": "Apache-2.0"
-}

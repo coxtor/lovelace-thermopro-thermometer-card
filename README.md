@@ -166,29 +166,28 @@ A separate optional Home Assistant timer is not a TP25 firmware timer.
 
 The card reads Home Assistant entities. The installed integration supplies Bluetooth device support.
 
-**Automated tests** use simulated HA entities.
 **Device tested** means the card was used with a physical thermometer.
 Only TP25 has been tested with hardware.
 If you use another model, please open an issue with the model name, integration, and which readings or controls work.
 
-| Model | HA integration | Should be compatible | Automated tests | Device tested |
-| --- | --- | --- | --- | --- |
-| TP25 | TP25 custom integration | Yes, with TP25 controls | Yes | Yes |
-| TP25 | Proposed Core TP25 support (not released) | Yes, basic readings | Yes | Yes, test build |
-| TP357 | Core `thermopro` | Yes | Yes | No |
-| TP357S | Core `thermopro` | Yes | Yes | No |
-| TP358 | Core `thermopro` | Yes | Yes | No |
-| TP358S | Core `thermopro` | Yes | Yes | No |
-| TP359 | Core `thermopro` | Yes | Yes | No |
-| TP393 | Core `thermopro` | Yes | Yes | No |
-| TP960 / TP960R | Core `thermopro` | Yes | Yes | No |
-| TP962 / TP962R | Core `thermopro` | Yes | Yes | No |
-| TP970 / TP970R | Core `thermopro` | Yes | Yes | No |
-| TP972S | Core `thermopro`, if exposed by the installed HA version | Yes | Yes | No |
-| TP902 | Custom `tp90x_multi` | Yes, with exposed controls | Yes | No |
-| TP920 | Custom `tp90x_multi` | Yes, with exposed controls | Yes | No |
-| TP904 | Custom `tp90x_multi`, experimental device support upstream | Yes, with exposed controls | Yes | No |
-| TP902 | Custom `thermopro_meat` | Yes, basic readings | Yes | No |
+| Model | HA integration | Should be compatible | Device tested |
+| --- | --- | --- | --- |
+| TP25 | TP25 custom integration | Yes, with TP25 controls | Yes |
+| TP25 | Proposed Core TP25 support (not released) | Yes, basic readings | Yes, test build |
+| TP357 | Core `thermopro` | Yes | No |
+| TP357S | Core `thermopro` | Yes | No |
+| TP358 | Core `thermopro` | Yes | No |
+| TP358S | Core `thermopro` | Yes | No |
+| TP359 | Core `thermopro` | Yes | No |
+| TP393 | Core `thermopro` | Yes | No |
+| TP960 / TP960R | Core `thermopro` | Yes | No |
+| TP962 / TP962R | Core `thermopro` | Yes | No |
+| TP970 / TP970R | Core `thermopro` | Yes | No |
+| TP972S | Core `thermopro`, if exposed by the installed HA version | Yes | No |
+| TP902 | Custom `tp90x_multi` | Yes, with exposed controls | No |
+| TP920 | Custom `tp90x_multi` | Yes, with exposed controls | No |
+| TP904 | Custom `tp90x_multi`, experimental device support upstream | Yes, with exposed controls | No |
+| TP902 | Custom `thermopro_meat` | Yes, basic readings | No |
 
 The device must work with one of the supported integrations before it can appear in the card.
 Unsupported controls and TP25-only presets remain hidden for other providers.
