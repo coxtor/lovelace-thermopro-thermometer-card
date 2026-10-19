@@ -23,8 +23,20 @@ Version: **0.2.2**. Use resource version **22** after updating.
 - Show the Core clock synchronization button when exposed.
 - Keep form values and open sections during Home Assistant updates.
 
-The TP25 custom integration supplies profile, alarm, unit, sound, and connection controls.
-The card also works with temperature and battery entities alone.
+## Extended features with the TP25 custom integration
+
+Use the **ThermoPro TP25 custom integration** to access the full TP25 controls in this card:
+
+- Set a target temperature or an alarm range for each probe.
+- Create, edit, save, and apply named alarm presets.
+- Acknowledge device alarms.
+- Change the device display unit and alarm sound setting.
+- Pause and resume the Bluetooth connection.
+
+These functions are provided by the custom integration; installing the card alone does not add them.
+The extended feature set currently applies to **TP25**.
+Support may expand to other models in the future, depending on integration support.
+The card shows the controls available for the selected device and also works with temperature and battery entities alone.
 
 ## Installation
 
